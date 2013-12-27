@@ -13,14 +13,14 @@ import math
 
 def initialize(context):
     """Initialize context object. It's passed to the handle_data function."""
-    context.stocks = {
-        12915: sid(12915), # MDY (SPDR S&P MIDCAP 400)
-        21769: sid(21769), # IEV (ISHARES EUROPE ETF)
-        24705: sid(24705), # EEM (ISHARES MSCI EMERGING MARKETS)
-        23134: sid(23134), # ILF (ISHARES LATIN AMERICA 40)
-        23118: sid(23118), # EEP (ISHARES MSCI PACIFIC EX JAPAN)
-        22887: sid(22887), # EDV (VANGUARD EXTENDED DURATION TREASURY)
-    }
+    context.stocks = [
+        sid(12915), # MDY (SPDR S&P MIDCAP 400)
+        sid(21769), # IEV (ISHARES EUROPE ETF)
+        sid(24705), # EEM (ISHARES MSCI EMERGING MARKETS)
+        sid(23134), # ILF (ISHARES LATIN AMERICA 40)
+        sid(23118), # EEP (ISHARES MSCI PACIFIC EX JAPAN)
+        sid(22887), # EDV (VANGUARD EXTENDED DURATION TREASURY)
+    ]
 
     # Date of last rebalancing
     context.rebalancing_date = None
@@ -225,7 +225,7 @@ def handle_data(context, data):
     # (e.g) EDV doesn't start trading until late 2007, without
     # this, any backtest run before that date would fail.
     stocks = []
-    for stock in context.stocks.values():
+    for stock in context.stocks:
         if current_date > stock.security_start_date \
                  and stock.sid in datapanel['price']:
             stocks.append(stock)
