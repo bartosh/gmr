@@ -227,7 +227,8 @@ def handle_data(context, data):
     # this, any backtest run before that date would fail.
     stocks = []
     for stock in context.stocks.values():
-        if current_date > stock.security_start_date:
+        if current_date > stock.security_start_date \
+                 and stock.sid in datapanel['price']:
             stocks.append(stock)
 
     # Determine which stock should be used for the next month
