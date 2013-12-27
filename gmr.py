@@ -22,8 +22,11 @@ def initialize(context):
         22887: sid(22887), # EDV (VANGUARD EXTENDED DURATION TREASURY)
     }
 
-    # Keep track of the current month.
-    context.currentMonth = None
+    # Date of last rebalancing
+    context.rebalancing_date = None
+
+    # Rebalancing period in calendar days
+    context.period = 31
 
     # The order ID of the sell order currently being filled
     context.oid = None
@@ -165,6 +168,13 @@ def accumulatedata(data):
     """
     return data
 
+def days(begin, end):
+    """Calculate amount of calendar days between two dates."""
+    roundb = begin.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+    rounde = end.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+
+    return (rounde - roundb).days
+
 def handle_data(context, data):
     """
     The main proccessing function.
@@ -184,6 +194,7 @@ def handle_data(context, data):
         # There is insufficient data accumulated to process
         return
 
+    current_date = get_datetime()
 
     # If there is an order ID, check the status of the order.
     # If there is an order and it is filled, the next stock
@@ -201,19 +212,12 @@ def handle_data(context, data):
             context.currentStock = context.nextStock
             context.oid = None
             context.nextStock = None
+            context.rebalancing_date = current_date
 
-    date = get_datetime()
-    month = date.month
-
-    if not context.currentMonth:
-        # Set the month initially
-        context.currentMonth = month
-
-    if context.currentMonth == month:
-        # If the current month is unchanged, nothing further to do
+    if context.rebalancing_date and days(context.rebalancing_date,
+                                         current_date) < context.period:
+        # It's not a time to rebalance yet, nothing further to do
         return
-
-    context.currentMonth = month
 
     # At this point, a new month has been reached.  The stocks
     # need to be
@@ -223,7 +227,7 @@ def handle_data(context, data):
     # this, any backtest run before that date would fail.
     stocks = []
     for stock in context.stocks.values():
-        if date > stock.security_start_date:
+        if current_date > stock.security_start_date:
             stocks.append(stock)
 
     # Determine which stock should be used for the next month
@@ -255,3 +259,4 @@ def handle_data(context, data):
         context.currentStock = context.nextStock
         context.oid = None
         context.nextStock = None
+        context.rebalancing_date = current_date
