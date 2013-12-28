@@ -154,7 +154,7 @@ def sellholdings(context):
     oid = None
     for pos in positions.values():
         if (pos.amount > 0):
-            #log.debug('ordering %s' % p)
+            log.info('Selling %s shares of %s' % (pos.amount, pos.sid.symbol))
             oid = order(pos.sid, -pos.amount)
 
     return oid
@@ -202,11 +202,12 @@ def handle_data(context, data):
     if context.oid is not None:
         orderobj = get_order(context.oid)
         if orderobj.filled == orderobj.amount:
+            log.info('Sold %s shares of %s' % (-orderobj.amount, orderobj.sid.symbol))
             # Good to buy next holding
             cash = context.portfolio.cash
-            log.info('Sell order complete, buying %s. Cash is %s' % \
-                 (context.nextStock.symbol, cash))
-            order_value(context.nextStock, cash)
+            oobj = get_order(order_value(context.nextStock, cash))
+            log.info('Sell order complete, buying %s shares of %s. Cash is %s' % \
+                 (oobj.amount, context.nextStock.symbol, cash))
             context.currentStock = context.nextStock
             context.oid = None
             context.nextStock = None
@@ -250,9 +251,9 @@ def handle_data(context, data):
     # This only happend
     if context.currentStock is None:
         cash = context.portfolio.cash
-        log.info('First purchase, buying %s. Cash is %s' % \
-                 (context.nextStock.symbol, cash))
-        order_value(context.nextStock, cash)
+        oobj = get_order(order_value(context.nextStock, cash))
+        log.info('Buying %s shares of %s. Cash is %s' % \
+                 (oobj.amount, context.nextStock.symbol, cash))
         context.currentStock = context.nextStock
         context.oid = None
         context.nextStock = None
