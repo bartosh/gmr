@@ -203,12 +203,10 @@ def handle_data(context, data):
         orderobj = get_order(context.oid)
         if orderobj.filled == orderobj.amount:
             # Good to buy next holding
-            price = data[context.nextStock.sid].price
             cash = context.portfolio.cash
-            amount = math.floor(cash / price) - 1
-            log.info('Sell order complete, buying %s of %s (%s of %s)' % \
-                 (amount, context.nextStock, amount * price, cash))
-            order(context.nextStock, amount)
+            log.info('Sell order complete, buying %s. Cash is %s' % \
+                 (context.nextStock.symbol, cash))
+            order_value(context.nextStock, cash)
             context.currentStock = context.nextStock
             context.oid = None
             context.nextStock = None
@@ -251,12 +249,10 @@ def handle_data(context, data):
     # If there is no stock currently held, it needs to be bought.
     # This only happend
     if context.currentStock is None:
-        price = data[context.nextStock.sid].price
         cash = context.portfolio.cash
-        amount = math.floor(cash / price) - 1
-        log.info('First purchase, buying %s of %s (%s of %s)' % \
-             (amount, context.nextStock, amount * price, cash))
-        order(context.nextStock, amount)
+        log.info('First purchase, buying %s. Cash is %s' % \
+                 (context.nextStock.symbol, cash))
+        order_value(context.nextStock, cash)
         context.currentStock = context.nextStock
         context.oid = None
         context.nextStock = None
